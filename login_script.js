@@ -10,43 +10,19 @@ const origins = process.env.ORIGINS.split(',')
 module.exports = (oauthProvider, message, content) => `
 <script>
 (function() {
-  function contains(arr, elem) {
-    for (var i = 0; i < arr.length; i++) {
-      if (arr[i].indexOf('*') >= 0) {
-        const regex = new RegExp(arr[i].replaceAll('.', '\\\\.').replaceAll('*', '[\\\\w_-]+'))
-        if (elem.match(regex) !== null) {
-          return true;
-        }
-      } else {
-        if (arr[i] === elem) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   var targetWindow = window.opener || (window.parent !== window ? window.parent : null);
 
-  function recieveMessage(e) {
-    console.log("recieveMessage %o", e)
-    if (!contains(${JSON.stringify(origins)}, e.origin.replace('https://', 'http://').replace('http://', ''))) {
-      console.log('Invalid origin: %s', e.origin);
-      return;
-    }
-    if (targetWindow) {
-      targetWindow.postMessage(
-        'authorization:${oauthProvider}:${message}:${JSON.stringify(content)}',
-        '*'
-      );
-    }
-    window.close();
-  }
-
-  window.addEventListener("message", recieveMessage, false);
-  console.log("Sending message: %o", "${oauthProvider}");
   if (targetWindow) {
-    targetWindow.postMessage("authorizing:${oauthProvider}", "*");
+    console.log("Posting token directly to main window...");
+    targetWindow.postMessage(
+      'authorization:${oauthProvider}:${message}:${JSON.stringify(content)}',
+      '*'
+    );
+    setTimeout(function() {
+      window.close();
+    }, 200);
+  } else {
+    console.error("No valid opener or parent window found.");
   }
 })()
 </script>`

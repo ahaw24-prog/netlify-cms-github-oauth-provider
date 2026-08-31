@@ -22,7 +22,8 @@ module.exports = (oauthProvider, message, content) => `
       window.close();
     }, 200);
   } else {
-    console.error("No valid opener or parent window found.");
+    console.warn("No opener found, redirecting directly to admin panel...");
+    window.location.href = "https://www.skolsimmarna.se/admin/#access_token=${content.token}&token_type=bearer";
   }
 })()
 </script>`

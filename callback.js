@@ -29,6 +29,7 @@ module.exports = (oauth2, oauthProvider) => {
       })
       .then(result => {
         const script = generateScript(oauthProvider, result.message, result.content)
+        res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none')
         return res.send(script)
       })
   }

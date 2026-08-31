@@ -42,7 +42,7 @@ module.exports = (oauthProvider, message, content) => `
     // send message to main window
     targetWindow.postMessage(
       'authorization:${oauthProvider}:${message}:${JSON.stringify(content)}',
-      e.origin
+      '*'
     );
   }
 
@@ -51,4 +51,3 @@ module.exports = (oauthProvider, message, content) => `
   targetWindow.postMessage("authorizing:${oauthProvider}", "*");
 })()
 </script>`
-

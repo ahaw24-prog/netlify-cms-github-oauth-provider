@@ -7,7 +7,6 @@ if (!process.env.ORIGINS.match(REQUIRED_ORIGIN_PATTERN)) {
 }
 const origins = process.env.ORIGINS.split(',')
 
-
 module.exports = (oauthProvider, message, content) => `
 <script>
 (function() {
@@ -15,7 +14,6 @@ module.exports = (oauthProvider, message, content) => `
     for (var i = 0; i < arr.length; i++) {
       if (arr[i].indexOf('*') >= 0) {
         const regex = new RegExp(arr[i].replaceAll('.', '\\\\.').replaceAll('*', '[\\\\w_-]+'))
-        console.log(regex)
         if (elem.match(regex) !== null) {
           return true;
         }
@@ -27,21 +25,30 @@ module.exports = (oauthProvider, message, content) => `
     }
     return false;
   }
+
+  var targetWindow = window.opener || window.parent;
+
+  if (!targetWindow) {
+    console.error("No opener window available.");
+    return;
+  }
+
   function recieveMessage(e) {
     console.log("recieveMessage %o", e)
     if (!contains(${JSON.stringify(origins)}, e.origin.replace('https://', 'http://').replace('http://', ''))) {
       console.log('Invalid origin: %s', e.origin);
       return;
     }
-    // send message to main window with da app
-    window.opener.postMessage(
+    // send message to main window
+    targetWindow.postMessage(
       'authorization:${oauthProvider}:${message}:${JSON.stringify(content)}',
       e.origin
-    )
+    );
   }
-  window.addEventListener("message", recieveMessage, false)
-  // Start handshare with parent
-  console.log("Sending message: %o", "${oauthProvider}")
-  window.opener.postMessage("authorizing:${oauthProvider}", "*")
+
+  window.addEventListener("message", recieveMessage, false);
+  console.log("Sending message: %o", "${oauthProvider}");
+  targetWindow.postMessage("authorizing:${oauthProvider}", "*");
 })()
 </script>`
+

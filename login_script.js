@@ -26,12 +26,7 @@ module.exports = (oauthProvider, message, content) => `
     return false;
   }
 
-  var targetWindow = window.opener || window.parent;
-
-  if (!targetWindow) {
-    console.error("No opener window available.");
-    return;
-  }
+  var targetWindow = window.opener || (window.parent !== window ? window.parent : null);
 
   function recieveMessage(e) {
     console.log("recieveMessage %o", e)
@@ -39,15 +34,19 @@ module.exports = (oauthProvider, message, content) => `
       console.log('Invalid origin: %s', e.origin);
       return;
     }
-    // send message to main window
-    targetWindow.postMessage(
-      'authorization:${oauthProvider}:${message}:${JSON.stringify(content)}',
-      '*'
-    );
+    if (targetWindow) {
+      targetWindow.postMessage(
+        'authorization:${oauthProvider}:${message}:${JSON.stringify(content)}',
+        '*'
+      );
+    }
+    window.close();
   }
 
   window.addEventListener("message", recieveMessage, false);
   console.log("Sending message: %o", "${oauthProvider}");
-  targetWindow.postMessage("authorizing:${oauthProvider}", "*");
+  if (targetWindow) {
+    targetWindow.postMessage("authorizing:${oauthProvider}", "*");
+  }
 })()
 </script>`
